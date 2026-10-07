@@ -1,0 +1,66 @@
+{
+  "model_id": "agriscope_random_forest_basic",
+  "algorithm": "random_forest",
+  "version": "v1.0",
+  "feature_schema": "basic",
+  "feature_names": [
+    "temperature",
+    "humidity",
+    "wind_speed",
+    "solar_radiation"
+  ],
+  "hyperparameters": {},
+  "dataset_id": "dataset_4b76153314",
+  "dataset_hash": "4b761533144188a38b46993ab6b41a4b7efb2beddbe4e14522c57d440c38f655",
+  "provenance": "synthetic",
+  "is_synthetic": true,
+  "metrics": {
+    "random_split": {
+      "r2": 0.9517,
+      "rmse": 0.7647,
+      "mae": 0.5142,
+      "bias": -0.0486,
+      "nse": 0.9517,
+      "kge": 0.8631,
+      "sample_count": 100,
+      "residuals": {
+        "mean": 0.0486,
+        "std": 0.7631,
+        "median": 0.0196,
+        "min": -1.9097,
+        "max": 2.6834,
+        "p25": -0.3978,
+        "p75": 0.2882
+      }
+    },
+    "grouped_split": {
+      "r2": 0.9503,
+      "rmse": 0.778,
+      "mae": 0.5398,
+      "bias": -0.0584,
+      "nse": 0.9503,
+      "kge": 0.8799,
+      "sample_count": 125,
+      "residuals": {
+        "mean": 0.0584,
+        "std": 0.7758,
+        "median": 0.0398,
+        "min": -2.0476,
+        "max": 2.935,
+        "p25": -0.3891,
+        "p75": 0.3877
+      }
+    }
+  },
+  "conformal": {
+    "nominal_coverage": 0.9,
+    "empirical_coverage": 0.93,
+    "mean_interval_width": 3.2421,
+    "quantile_score": 1.621,
+    "calibration_samples": 50
+  },
+  "training_time_seconds": 0.36,
+  "git_sha": "unknown",
+  "created_at": "2026-10-07T01:14:00.510612+00:00",
+  "description": "AgriScope RANDOM_FOREST ET model (basic schema)."
+}

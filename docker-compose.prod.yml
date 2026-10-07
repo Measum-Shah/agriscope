@@ -1,0 +1,125 @@
+services:
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: agriscope-nginx-prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - certs_data:/etc/letsencrypt:ro
+    depends_on:
+      - frontend
+      - api
+    networks:
+      - agriscope-prod-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: runner
+    container_name: agriscope-frontend-prod
+    restart: always
+    networks:
+      - agriscope-prod-network
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runner
+    container_name: agriscope-api-prod
+    restart: always
+    env_file:
+      - .env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - agriscope-prod-network
+
+  ml-service:
+    build:
+      context: ./ml
+      dockerfile: Dockerfile
+      target: runner
+    container_name: agriscope-ml-prod
+    restart: always
+    networks:
+      - agriscope-prod-network
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runner
+    container_name: agriscope-worker-prod
+    restart: always
+    command: celery -A app.workers.celery_app worker -l info -c 4
+    env_file:
+      - .env.production
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - agriscope-prod-network
+
+  beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runner
+    container_name: agriscope-beat-prod
+    restart: always
+    command: celery -A app.workers.celery_app beat -l info
+    env_file:
+      - .env.production
+    depends_on:
+      - redis
+    networks:
+      - agriscope-prod-network
+
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: agriscope-postgres-prod
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - agriscope-prod-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: agriscope-redis-prod
+    restart: always
+    volumes:
+      - redis_prod_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - agriscope-prod-network
+
+volumes:
+  postgres_prod_data:
+  redis_prod_data:
+  certs_data:
+
+networks:
+  agriscope-prod-network:
+    driver: bridge
